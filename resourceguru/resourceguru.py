@@ -47,7 +47,7 @@ class ResourceGuru(object):
         if archived:
             suffix = '/archived'
         response = self.oauth.get(self.base_uri + endpoint + suffix, params=params)
-        json = response.json() 
+        json = response.json()
         # Create a dictionary indexed by item ID instead of a flat list.
         data = {item['id']:item for item in json}
         return data
@@ -66,7 +66,11 @@ class ResourceGuru(object):
         if booker_id:
             params['booker_id'] = booker_id
         response = self.oauth.get(self.base_uri + 'bookings', params=params)
-        return response.json() 
+        return response.json()
+
+    def get_resource(self, id):
+        response = self.oauth.get(self.base_uri + 'resources/' + id)
+        return response.json()
 
     def token_updater(self, token):
         """
