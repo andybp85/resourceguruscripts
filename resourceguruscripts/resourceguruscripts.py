@@ -13,7 +13,7 @@ class ResourceGuruScripts(object):
     #AUTHORIZE_URI = RESOURCEGURU + 'oauth/authorize'
     API = 'v1'
     API_URI = RESOURCEGURU + API
- 
+
 
     def __init__(self, account, client_id, client_secret, username, password, redirect_uri=False):
         """
@@ -36,7 +36,11 @@ class ResourceGuruScripts(object):
         """
         Requests an access token.
         """
-        data = {'username': username, 'client_secret': client_secret, 'password': password, 'grant_type': 'password', 'client_id': client_id }
+        data = {'username'              : username, \
+                'client_secret'         : client_secret, \
+                'password'              : password, 'grant_type' : \
+                'password', 'client_id' : client_id }
+
         response = self.oauth.post(self.TOKEN_URI, data)
         self.token_updater(json.loads(urllib.unquote(response.content)))
 
@@ -48,11 +52,40 @@ class ResourceGuruScripts(object):
         self.token = token
 
 
+    """
+
+    Setters and Gettters
+
+    """
+
+
+    def simple_list(self, endpoint, limit=50, offset=0, archived=False):
+        """
+        Accesses any simple list based API endpoint, returning a dictionary of
+        dictionaries keyed by the item ID.
+        """
+        params = {'limit'         : limit,
+                  'offset'        : offset}
+
+        suffix = ''
+        if archived:
+            suffix = '/archived'
+        import pdb; pdb.set_trace()
+        response = self.oauth.get(self.base_uri + endpoint + suffix, params=params)
+        json = response.json()
+        # Create a dictionary indexed by item ID instead of a flat list.
+        data = {item['id']:item for item in json}
+        return data
+
 
 
 
     def get_bookings(self, start_date, end_date, limit=50, offset=0, booker_id=False):
-        params = {'start_date': start_date.isoformat(), 'end_date': end_date.isoformat(), 'limit': limit, 'offset': offset}
+        params = {'start_date' : start_date.isoformat(), \
+                  'end_date'   : end_date.isoformat(), \
+                  'limit'      : limit, \
+                  'offset'     : offset}
+
         if booker_id:
             params['booker_id'] = booker_id
         #response = self.oauth.get(self.base_uri + 'bookings', params=params)
@@ -76,25 +109,6 @@ class ResourceGuruScripts(object):
             data['client_id'] = client_id
         #response = self.oauth.put(self.base_uri + 'bookings', params=params)
         return response.json()
-
-
-    def simple_list(self, endpoint, limit=50, offset=0, archived=False):
-        """
-        Accesses any simple list based API endpoint, returning a dictionary of
-        dictionaries keyed by the item ID.
-        """
-        params = {'limit': limit, 'offset': offset, "Authorization": "bearer " + self.token}
-        import pdb; pdb.set_trace()
-        suffix = ''
-        if archived:
-            suffix = '/archived'
-        print params
-        #response = self.oauth.get(self.base_uri + endpoint + suffix, params=params)
-        pp.pprint(response.status_code)
-        json = response.json()
-        # Create a dictionary indexed by item ID instead of a flat list.
-        data = {item['id']:item for item in json}
-        return data
 
 
 
