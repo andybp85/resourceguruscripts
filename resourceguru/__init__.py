@@ -1,1 +1,0 @@
-from resourceguru.resourceguru import ResourceGuru
