@@ -1,9 +1,11 @@
 """A module that wraps the resourceguruapp.com API"""
 
 from requests_oauthlib import OAuth2Session
-from oauthlib.oauth2 import TokenExpiredError
-from datetime import date
+from oauthlib.oauth2 import BackendApplicationClient
+#from oauthlib.oauth2 import TokenExpiredError
+#from datetime import date
 import pickle, json, urllib
+import os.path, time
 
 import pprint as pp
 
@@ -14,35 +16,50 @@ class ResourceGuruScripts(object):
     API = 'v1'
     API_URI = RESOURCEGURU + API
 
+    """
+
+    OAuth2 Handlng
+
+    """
 
     def __init__(self, account, client_id, client_secret, username, password, redirect_uri=False):
         """
         Initializes the hook with OAuth2 parameters.
         """
-        self.client_secret = client_secret
+        #self.client_secret = client_secret
         self.base_uri = self.API_URI + '/' + account + '/'
         try:
-            self.token = pickle.load(open('token.p', "rb"))
+            token = pickle.load(open('token.p', "rb"))
+            token['expires_in'] = token['expires_in'] - (int(time.time()) - int(os.path.getmtime('token.p')))
+            self.token_updater(token)
         except:
-            self.token = {} #self.oauth.fetch_token( auth=(username, password) )
-        self.oauth = OAuth2Session(client_id           = client_id, \
-                                   auto_refresh_url    = self.TOKEN_URI, \
-                                   auto_refresh_kwargs = ['client_id', 'client_secret'], \
-                                   token_updater       = self.token_updater(self.token), \
+            self.token = {}
+        self.oauth = OAuth2Session(client_id           = client_id,
+                                   auto_refresh_url    = self.TOKEN_URI,
+                                   auto_refresh_kwargs = ['client_id', 'client_secret'],
+                                   token_updater       = self.token_updater(self.token),
                                    token               = self.token)
+        import pdb; pdb.set_trace()
+
+        self.token_updater(self.oauth.token)
         self.start_session(client_id, client_secret, redirect_uri, username, password)
 
     def start_session(self, client_id, client_secret, redirect_uri, username, password):
         """
         Requests an access token.
         """
-        data = {'username'              : username, \
-                'client_secret'         : client_secret, \
-                'password'              : password, 'grant_type' : \
-                'password', 'client_id' : client_id }
+       # data = {'username'              : username,
+                #'client_secret'         : client_secret,
+                #'password'              : password,
+                #'grant_type'            : 'password',
+                #'client_id'             : client_id }
 
-        response = self.oauth.post(self.TOKEN_URI, data)
+        
+        response = self.oauth.fetch_token(token_url = self.TOKEN_URI,
+                                          auth      = (username, password),
+                                          kwargs    = ['client_id', 'client_secret'])
         self.token_updater(json.loads(urllib.unquote(response.content)))
+        
 
     def token_updater(self, token):
         """
