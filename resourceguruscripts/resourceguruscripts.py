@@ -24,13 +24,13 @@ class ResourceGuruScripts(object):
         try:
             self.token = pickle.load(open('token.p', "rb"))
         except:
-            self.token = []
-            self.start_session(client_id, client_secret, redirect_uri, username, password)
+            self.token = {} #self.oauth.fetch_token( auth=(username, password) )
         self.oauth = OAuth2Session(client_id           = client_id, \
                                    auto_refresh_url    = self.TOKEN_URI, \
                                    auto_refresh_kwargs = ['client_id', 'client_secret'], \
                                    token_updater       = self.token_updater(self.token), \
                                    token               = self.token)
+        self.start_session(client_id, client_secret, redirect_uri, username, password)
 
     def start_session(self, client_id, client_secret, redirect_uri, username, password):
         """
@@ -70,11 +70,11 @@ class ResourceGuruScripts(object):
         suffix = ''
         if archived:
             suffix = '/archived'
-        import pdb; pdb.set_trace()
         response = self.oauth.get(self.base_uri + endpoint + suffix, params=params)
-        json = response.json()
+        #import pdb; pdb.set_trace()
+        content = json.loads(response.content)
         # Create a dictionary indexed by item ID instead of a flat list.
-        data = {item['id']:item for item in json}
+        data = {item['id']:item for item in content}
         return data
 
 
