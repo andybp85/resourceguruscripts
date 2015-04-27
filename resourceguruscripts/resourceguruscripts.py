@@ -39,7 +39,7 @@ class ResourceGuruScripts(object):
                                    auto_refresh_kwargs = ['client_id', 'client_secret'],
                                    token_updater       = self.token_updater(self.token),
                                    token               = self.token)
-        import pdb; pdb.set_trace()
+        #import pdb; pdb.set_trace()
 
         self.token_updater(self.oauth.token)
         self.start_session(client_id, client_secret, redirect_uri, username, password)
@@ -48,18 +48,16 @@ class ResourceGuruScripts(object):
         """
         Requests an access token.
         """
-       # data = {'username'              : username,
-                #'client_secret'         : client_secret,
-                #'password'              : password,
-                #'grant_type'            : 'password',
-                #'client_id'             : client_id }
+        data = {'username'              : username,
+                'client_secret'         : client_secret,
+                'password'              : password,
+                'grant_type'            : 'password',
+                'client_id'             : client_id }
 
-        
-        response = self.oauth.fetch_token(token_url = self.TOKEN_URI,
-                                          auth      = (username, password),
-                                          kwargs    = ['client_id', 'client_secret'])
+
+        response = self.oauth.post(self.TOKEN_URI, data)
         self.token_updater(json.loads(urllib.unquote(response.content)))
-        
+
 
     def token_updater(self, token):
         """
