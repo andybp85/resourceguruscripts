@@ -156,19 +156,25 @@ class ResourceGuruScripts(object):
             params['booker_id'] = booker_id
         return self.oauth.get(self.base_uri + 'bookings', params=params).json()
 
-    def addBooking(self, start_date, resource, project, client, duration=1):
+    def addBooking(self, start_date, resource, project, client, details=False, duration=1):
         """
         Adds a booking
         Returns json
         """
-        data = {'start_date' : start_date, 
-                'duration'   : duration }
+        data = {'start_date'    : start_date,
+                'end_date'      : start_date,
+                'duration'      : duration,
+                'allow_waiting' : 'true'}
         data['client_id']   = self.setClient(client)                   #tested
         data['project_id']  = self.setProject(project, client)         #
         data['resource_id'] = self.getOneByName('resources', resource) #
+        if details:
+            data["details"] = details
         response = self.oauth.post(self.base_uri + 'bookings', data=data)
         pp.pprint(data)
         pp.pprint([x for x in response.iter_lines()])
+        if response.status_code != 201:
+            return False
         return response.json()
 
 
