@@ -54,3 +54,6 @@ docs/_build/
 
 # vim swap files
 *.swp
+*.swo
+*.swn
+
