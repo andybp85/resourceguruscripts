@@ -4,15 +4,15 @@ except ImportError:
     from distutils.core import setup
 
 config = {
-    'description': 'ResourceGuru Python for scripts',
+    'name': 'resourceguruscripts',
+    'packages': ['resourceguruscripts'],
+    'version': '0.1',
+    'description': 'ResourceGuru Python for Scripts',
     'author': 'Andrew Stanish for YouShallThrive, Inc. based on original by Owen Barton',
     'url': 'https://github.com/andybp85/resourceguruscrips',
-    'version': '0.1',
-    'install_requires': [],
-    'requires': ['requests_oauth2'],
-    'packages': ['resourceguruscrips'],
-    'scripts': [],
-    'name': 'resourceguru'
-}
+    'keywords' : ['resourceguru'],
+    'classifiers' : [],
+    'requires': ['requests_oauthlib']
+    }
 
 setup(**config)
