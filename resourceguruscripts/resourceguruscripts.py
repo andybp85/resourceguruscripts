@@ -125,14 +125,14 @@ class ResourceGuruScripts(object):
         if not data:
             return False
 
-        return self.oauth.put(self.base_uri + 'clients/' + client_id, data=data).json()
+        return self.oauth.put(self.base_uri + 'clients/' + str(client_id), data=data).json()
 
     def deleteClient(self, client_id):
         """
         Delete single client by ID
         Returns True if success, False if not
         """
-        response = self.oauth.delete(self.base_uri + 'clients/' + client_id)
+        response = self.oauth.delete(self.base_uri + 'clients/' + str(client_id))
 
         if response.status_code == 204:
             return True
@@ -205,14 +205,14 @@ class ResourceGuruScripts(object):
         if not data:
             return False
 
-        return self.oauth.put(self.base_uri + 'projects/' + proj_id, data=data).json()
+        return self.oauth.put(self.base_uri + 'projects/' + str(proj_id), data=data).json()
 
     def deleteProject(self, proj_id):
         """
         Delete single project by ID
         Returns True if success, False if not
         """
-        response = self.oauth.delete(self.base_uri + 'projects/' + proj_id)
+        response = self.oauth.delete(self.base_uri + 'projects/' + str(proj_id))
 
         if response.status_code == 204:
             return True
@@ -232,7 +232,6 @@ class ResourceGuruScripts(object):
         if start_date and end_date:
             params['start_date'] = start_date
             params['end_date'] = end_date
-            pp.pprint(params)
             response = self.oauth.get(self.base_uri + 'bookings', params=params)
 
         if project:
@@ -293,7 +292,7 @@ class ResourceGuruScripts(object):
         if not data:
             return False
 
-        response = self.oauth.put(self.base_uri + 'bookings/' + booking_id, params=params)
+        response = self.oauth.put(self.base_uri + 'bookings/' +  str(booking_id), params=params)
 
         return response.json()
 
@@ -302,7 +301,7 @@ class ResourceGuruScripts(object):
         Delete single booking by ID
         Returns True if success, False if not
         """
-        response = self.oauth.delete(self.base_uri + 'bookings/' + booking_id)
+        response = self.oauth.delete(self.base_uri + 'bookings/' +  str(booking_id))
 
         if response.status_code == 204:
             return True
