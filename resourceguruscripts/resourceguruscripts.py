@@ -1,18 +1,52 @@
-"""A module that wraps the resourceguruapp.com API"""
+"""ResourceGuru API python wrapper wrapper for back-end scripts
 
+This module wraps the ResourceGuru Api using OAuth2 BackendApplicationClient and Basic Auth to allow automated scripts access.
+
+Init:
+
+    ResourceGuruScripts( account, client_id, client_secret, username, password )
+
+Methods:
+
+#1: Clients
+    getClients(limit=0, offset=0, archived=False)
+    setClient(name)
+    addClient(name, notes=False):
+    updateClient(client_id, name=False, notes=False)
+    deleteClient(client_id)
+
+#2: Projects
+    getProjects(limit=0, offset=0, archived=False)
+    setProject(name, project_notes, client)
+    addProject(name, notes=False, client=False, client_id=False)
+    updateProject(proj_id, name=False, archived=False, notes=False, client_id=False)
+    deleteProject(proj_id)
+
+#3: Bookings
+    getBookings(start_date=False, end_date=False, project=False, client=False, resource=False, limit=0, offset=0, booker_id=False)
+    addBooking(start_date, resource, project, project_notes, client, client_notes, details=False, duration=1)
+    updateBooking(booking_id, resource=False, start_date=False, project=False, client=False, duration=1,)
+    deleteBooking(booking_id)
+
+#4: Other
+    getResources(limit=0, offset=0, archived=False)
+    getOneByName(endpoint, name, client_id=False, limit=0, offset=0, archived=False)
+    getNameById(endpoint, item_id)
+    simple_list(endpoint, limit=0, offset=0, archived=False):
+
+#5: Plumbing
+    _start_session(client_id, client_secret, redirect_uri, username, password)
+    _token_updater(token)
+
+"""
 from requests_oauthlib import OAuth2Session
 from oauthlib.oauth2 import BackendApplicationClient
-#from oauthlib.oauth2 import TokenExpiredError
-import pickle, urllib, iso8601, json
-import os.path, time
+import pickle, urllib, sys, os.path, time
 
-import pprint as pp
-import sys
 
 class ResourceGuruScripts(object):
     RESOURCEGURU = 'https://api.resourceguruapp.com/'
     TOKEN_URI = RESOURCEGURU + 'oauth/token'
-    #AUTHORIZE_URI = RESOURCEGURU + 'oauth/authorize'
     API = 'v1'
     API_URI = RESOURCEGURU + API
 
@@ -20,50 +54,57 @@ class ResourceGuruScripts(object):
         """
         Initializes the hook with OAuth2 parameters.
         """
-        #self.client_secret = client_secret
         self.base_uri = self.API_URI + '/' + account + '/'
+
         try:
             token = pickle.load(open('token.p', "rb"))
             token['expires_in'] = token['expires_in'] - (int(time.time()) - int(os.path.getmtime('token.p')))
             self._token_updater(token)
         except:
             self.token = {}
+
         self.oauth = OAuth2Session(client_id           = client_id,
                                    auto_refresh_url    = self.TOKEN_URI,
                                    auto_refresh_kwargs = ['client_id', 'client_secret'],
                                    token_updater       = self._token_updater(self.token),
                                    token               = self.token)
+
         self._token_updater(self.oauth.token)
         self._start_session(client_id, client_secret, redirect_uri, username, password)
 
 
 #1: clients funcs
 
-    def getProjects(self, limit=0, offset=0, archived=False):
+    def getClients(self, limit=0, offset=0, archived=False):
         """
         Get all projects
         Returns json
         """
-        return self._simple_list('clients', limit=limit, offset=offset, archived=archived)
+        return self.simple_list('clients', limit=limit, offset=offset, archived=archived)
 
-    def setClient(self, name):
+    def setClient(self, name, notes=False):
         """
         Checks if a client exists, if not creates it
         Returns ID
         """
         response = self.getOneByName('clients', name)
+
         if not response:
-            return self.addClient(name)
+            return self.addClient(name, notes)
         else:
             return response
 
-    def addClient(self, name):
+    def addClient(self, name, notes=False):
         """
         Add client
         Returns ID
         """
         data = {'name' : name}
+        if notes:
+            data["notes"] = notes
+
         response = self.oauth.post(self.base_uri + 'clients/', data=data)
+
         if response.status_code == 404:
             return False
         else:
@@ -76,13 +117,27 @@ class ResourceGuruScripts(object):
         Returns json or False
         """
         data = {}
+
         if name:
             data["name"] = name
         if notes:
             data["notes"] = notes
         if not data:
             return False
+
         return self.oauth.put(self.base_uri + 'clients/' + client_id, data=data).json()
+
+    def deleteClient(self, client_id):
+        """
+        Delete single client by ID
+        Returns True if success, False if not
+        """
+        response = self.oauth.delete(self.base_uri + 'clients/' + client_id)
+
+        if response.status_code == 204:
+            return True
+        else:
+            return False
 
 
 #2:  projects funcs
@@ -92,32 +147,42 @@ class ResourceGuruScripts(object):
         Get all projects
         Returns json
         """
-        return self._simple_list('projects', limit=limit, offset=offset, archived=archived)
+        return self.simple_list('projects', limit=limit, offset=offset, archived=archived)
 
 
-    def setProject(self, name, client):
+    def setProject(self, name, project_notes, client):
         """
         Checks if project exists, if not creates it
         Returns ID
         """
-        response = self.getOneByName('project', name, client)
+        client_id= self.getOneByName('clients', client)
+        response = self.getOneByName('projects', name, client_id)
+
         if not response:
-            return self.addProject(name, client)
+            return self.addProject(name, notes=project_notes, client_id=client_id)
         else:
             return response
 
-    def addProject(self, name, client=False):
+    def addProject(self, name, notes=False, client=False, client_id=False):
         """
         Add a project by name (and client if applicable)
-        Returns an ID 
+        Returns an ID
         """
         if client:
             client_id = self.setClient(client)
             data = {'name'      : name,
                     'client_id' : client_id}
+        elif client_id:
+            data = {'name'      : name,
+                    'client_id' : client_id}
         else:
             data = {'name' : name}
+
+        if notes:
+            data['notes'] = notes
+
         response = self.oauth.post(self.base_uri + 'projects/', data=data).json()
+
         return response["id"]
 
     def updateProject(self, proj_id, name=False, archived=False, notes=False, client_id=False):
@@ -128,8 +193,9 @@ class ResourceGuruScripts(object):
         self.updateProject( project_id, [name], [archived], [notes], [client_id] )
         """
         data = {}
+
         if name:
-            data["name"] = name
+            data["name"] = currentframe
         if archived:
             data["archived"] = archived
         if notes:
@@ -138,45 +204,72 @@ class ResourceGuruScripts(object):
             data["client_id"] = client_id
         if not data:
             return False
+
         return self.oauth.put(self.base_uri + 'projects/' + proj_id, data=data).json()
+
+    def deleteProject(self, proj_id):
+        """
+        Delete single project by ID
+        Returns True if success, False if not
+        """
+        response = self.oauth.delete(self.base_uri + 'projects/' + proj_id)
+
+        if response.status_code == 204:
+            return True
+        else:
+            return False
 
 
 #3: bookings funcs
 
-    def getBookingsByDates(self, start_date, end_date, limit=0, offset=0, booker_id=False):
+    def getBookings(self, start_date=False, end_date=False, project=False, client=False, resource=False, limit=0, offset=0, booker_id=False):
         """
-        Get all bookings between two dates
-        Returns json
+        Get bookings by dates, project, client, or resource
+        Returns json or False
         """
-        params = {'start_date' : iso8601.parse_date(start_date),
-                  'end_date'   : iso8601.parse_date(end_date),
-                  'limit'      : limit,
-                  'offset'     : offset}
-        if booker_id:
-            params['booker_id'] = booker_id
-        return self.oauth.get(self.base_uri + 'bookings', params=params).json()
+        params = {'limit' : limit, 'offset' : offset}
 
-    def addBooking(self, start_date, resource, project, client, details=False, duration=1):
+        if start_date and end_date:
+            params['start_date'] = start_date
+            params['end_date'] = end_date
+            pp.pprint(params)
+            response = self.oauth.get(self.base_uri + 'bookings', params=params)
+
+        if project:
+            response = self.oauth.get(self.base_uri + 'projects/' + str(self.getOneByName('projects', project)) + '/bookings')
+        if client:
+            response = self.oauth.get(self.base_uri + 'clients/' + str(self.getOneByName('clients', client)) + '/bookings')
+        if resource:
+            response = self.oauth.get(self.base_uri + 'resources/' + str(self.getOneByName('resources', resource)) + '/bookings')
+
+        if response and response.status_code == 200:
+            return response.json()
+
+        return False
+
+
+    def addBooking(self, start_date, resource, project, project_notes, client, client_notes, details=False, duration=1):
         """
         Adds a booking
-        Returns json
+        Returns json or False
         """
         data = {'start_date'    : start_date,
                 'end_date'      : start_date,
                 'duration'      : duration,
                 'allow_waiting' : 'true'}
-        data['client_id']   = self.setClient(client)                   #tested
-        data['project_id']  = self.setProject(project, client)         #
-        data['resource_id'] = self.getOneByName('resources', resource) #
+
+        data['client_id']   = self.setClient(client, client_notes)
+        data['project_id']  = self.setProject(project, project_notes, client)
+        data['resource_id'] = self.getOneByName('resources', resource)
+
         if details:
             data["details"] = details
         response = self.oauth.post(self.base_uri + 'bookings', data=data)
-        pp.pprint(data)
-        pp.pprint([x for x in response.iter_lines()])
+
         if response.status_code != 201:
             return False
-        return response.json()
 
+        return response.json()
 
     def updateBooking(self, booking_id, resource=False, start_date=False, project=False, client=False, duration=1,):
         """
@@ -186,20 +279,35 @@ class ResourceGuruScripts(object):
         self.updateBooking( booking_id, [resource_name], [start_date], [project_name], [client_name], [duration] )
         """
         data =  {}
+
         if start_date:
-            data["start_date"] = iso8601.parse_date(start_date)
+            data["start_date"] = start_date
         if duration:
             data["duration"] = duration
         if client:
-            data['client_id']   = self.setClient(client)
+            data['client_id']   = self.setClient(client, client_notes)
         if project:
             data['project_id']  = self.setProject(project, client)
         if resource:
             data['resource_id'] = self.getOneByName('resources', resource)
         if not data:
             return False
+
         response = self.oauth.put(self.base_uri + 'bookings/' + booking_id, params=params)
+
         return response.json()
+
+    def deleteBooking(self, booking_id):
+        """
+        Delete single booking by ID
+        Returns True if success, False if not
+        """
+        response = self.oauth.delete(self.base_uri + 'bookings/' + booking_id)
+
+        if response.status_code == 204:
+            return True
+        else:
+            return False
 
 
 #4: Other funcs
@@ -209,9 +317,9 @@ class ResourceGuruScripts(object):
         Get all reouces
         Returns json
         """
-        return self._simple_list('resources', limit=limit, offset=offset, archived=archived)
+        return self.simple_list('resources', limit=limit, offset=offset, archived=archived)
 
-    def getOneByName(self, what, name, client_id=False, limit=0, offset=0, archived=False):
+    def getOneByName(self, endpoint, name, client_id=False, limit=0, offset=0, archived=False):
         """
         Get one of something by name (and client if applicable).
         Returns an ID or False
@@ -221,9 +329,12 @@ class ResourceGuruScripts(object):
         params = {'limit'    : limit,
                   'offset'   : offset,
                   'archived' : archived}
-        response = self.oauth.get(self.base_uri + what, params=params)
+
+        response = self.oauth.get(self.base_uri + endpoint, params=params)
+
         if response.status_code == 404:
             return False
+
         if client_id:
             for r in response.json():
                 if r["name"] == name and r["client_id"] == client_id:
@@ -239,29 +350,32 @@ class ResourceGuruScripts(object):
         Return name or False
         """
         response = self.oauth.get(base_uri + endpoint + '/' + item_id).json()
+
         try:
             return response["name"]
         except:
             return False
 
-
-#5: Plumbing funcs
-
-    def _simple_list(self, endpoint, limit=0, offset=0, archived=False):
+    def simple_list(self, endpoint, limit=0, offset=0, archived=False):
         """
         Accesses any simple list based API endpoint, returning a dictionary of
         dictionaries keyed by the item ID.
         """
         params = { 'limit'  : limit, 'offset' : offset }
-        suffix = ''
+
         if archived:
             suffix = '/archived'
+        else:
+             suffix = ''
+
         response = self.oauth.get(self.base_uri + endpoint + suffix, params=params)
-        #import pdb; pdb.set_trace()
         content = response.json()
+
         # Create a dictionary indexed by item ID instead of a flat list.
         data = {item['id']:item for item in content}
         return data
+
+#5: Plumbing funcs
 
     def _start_session(self, client_id, client_secret, redirect_uri, username, password):
         data = {'username'              : username,
@@ -270,12 +384,10 @@ class ResourceGuruScripts(object):
                 'grant_type'            : 'password',
                 'client_id'             : client_id }
 
-
         response = self.oauth.post(self.TOKEN_URI, data)
         self._token_updater(response.json())
 
     def _token_updater(self, token):
         pickle.dump(token, open('token.p', "wb"))
         self.token = token
-
 

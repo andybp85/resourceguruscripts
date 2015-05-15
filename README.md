@@ -1,4 +1,7 @@
 ResourceGuruScripts
 ============
 
-ResourceGuru API python wrapper utilizing Basic Auth for back-end scripts
+This module wraps the ResourceGuru Api using OAuth2 BackendApplicationClient and Basic Auth to allow automated scripts access.
+
+Includes functionality to create, read, update, and delete bookings, clients, and projects 
+
