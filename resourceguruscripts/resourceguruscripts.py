@@ -300,11 +300,14 @@ class ResourceGuruScripts(object):
         return False
 
 
-    def deleteBooking(self, booking_id):
+    def deleteBooking(self, booking_id=False, booking_name=False):
         """
         Delete single booking by ID
         Returns True if success, False if not
         """
+        if booking_name:
+            booking_id = self.getOneByName('bookings', booking_name)
+
         response = self.oauth.delete(self.base_uri + 'bookings/' +  str(booking_id))
 
         if response.status_code == 204:
