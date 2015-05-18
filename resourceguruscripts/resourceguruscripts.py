@@ -270,12 +270,12 @@ class ResourceGuruScripts(object):
 
         return response.json()
 
-    def updateBooking(self, booking_id, resource=False, start_date=False, project=False, client=False, duration=1,):
+    def updateBooking(self, booking_id=False, booking_name=False, resource=False, start_date=False, project=False, client=False, duration=1,):
         """
-        Update a booking
+        Update a booking. Must include either booking_id OR booking_name, and at least one thing to change
         Returns json or False
 
-        self.updateBooking( booking_id, [resource_name], [start_date], [project_name], [client_name], [duration] )
+        self.updateBooking( [booking_id], [booking_name], [resource_name], [start_date], [project_name], [client_name], [duration] )
         """
         data =  {}
 
@@ -289,12 +289,16 @@ class ResourceGuruScripts(object):
             data['project_id']  = self.setProject(project, client)
         if resource:
             data['resource_id'] = self.getOneByName('resources', resource)
-        if not data:
-            return False
 
-        response = self.oauth.put(self.base_uri + 'bookings/' +  str(booking_id), params=params)
+        if booking_name:
+            booking_id = self.getOneByName('bookings', booking_name)
 
-        return response.json()
+        if data and booking_id:
+            response = self.oauth.put(self.base_uri + 'bookings/' +  str(booking_id), params=params)
+            return response.json()
+
+        return False
+
 
     def deleteBooking(self, booking_id):
         """
