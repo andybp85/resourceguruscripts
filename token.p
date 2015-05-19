@@ -1,0 +1,17 @@
+(dp0
+Vaccess_token
+p1
+V6904f2716c6b174e4511c61810d5495d54c1dcccb9f8e62410fa365046d3c805
+p2
+sVtoken_type
+p3
+Vbearer
+p4
+sVexpires_in
+p5
+I604800
+sVrefresh_token
+p6
+V59051f6bfa3f8d2dee5b8062065ea8b405f6dcae22234f6cadf753db6a19812e
+p7
+s.

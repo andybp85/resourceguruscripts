@@ -28,21 +28,27 @@ Methods:
     updateBooking(booking_id, resource=False, start_date=False, project=False, client=False, duration=1,)
     deleteBooking(booking_id)
 
-#4: Other
+#4: webhooks
+    getWebhooks()
+    setWebhook(name, payload_url, events, secret=False)
+    updateWebhook(webhook_id, name=False, payload_url=False, events=False, secret=False):
+    deleteWebhook(self, webhook_id)
+
+#5: Other
     getResources(limit=0, offset=0, archived=False)
     getOneByName(endpoint, name, client_id=False, limit=0, offset=0, archived=False)
     getNameById(endpoint, item_id)
     simple_list(endpoint, limit=0, offset=0, archived=False):
 
-#5: Plumbing
+#6: Session Handling
     _start_session(client_id, client_secret, redirect_uri, username, password)
     _token_updater(token)
 
 """
 from requests_oauthlib import OAuth2Session
 from oauthlib.oauth2 import BackendApplicationClient
-import pickle, urllib, sys, os.path, time
-
+from urllib import urlencode
+import pickle, sys, os.path, time
 
 class ResourceGuruScripts(object):
     RESOURCEGURU = 'https://api.resourceguruapp.com/'
@@ -284,9 +290,9 @@ class ResourceGuruScripts(object):
         if duration:
             data["duration"] = duration
         if client:
-            data['client_id']   = self.setClient(client, client_notes)
+            data['client_id'] = self.setClient(client, client_notes)
         if project:
-            data['project_id']  = self.setProject(project, client)
+            data['project_id'] = self.setProject(project, client)
         if resource:
             data['resource_id'] = self.getOneByName('resources', resource)
         if not data:
@@ -308,8 +314,78 @@ class ResourceGuruScripts(object):
         else:
             return False
 
+#4: webhooks
 
-#4: Other funcs
+    def getWebhooks(self):
+        """
+        Gets all webhooks.
+        Returns JSON
+        """
+        response = self.ouath.get(self.base_uri + 'webhooks')
+        return response.json()
+
+    def setWebhook(self, name, payload_url, events, secret=False):
+        """
+        Sets a webhook. Can pass secret stored in session.
+        Returns JSON
+
+        self.setWebhook(name, payload_url, events(Array), [secret(Bool)] )
+        """
+        data = {'name'        : name,
+                'payload_url' : payload_url,
+                'events[]'      : events}
+
+        if secret:
+            data['secret'] = self.secret
+
+        response = self.oauth.post(self.base_uri + 'webhooks', data)
+
+        return response.json()
+
+    def updateWebhook(self, webhook_id, name=False, payload_url=False, events=False, secret=False):
+        """
+        Update a webhook. Can pass secret stored in session.
+        Returns True if success, False if no parameters or JSON if error
+
+        self.updateWebhook(webhook_id, [name], [payload_url], [events(Array)], [secret(Bool)] )
+        """
+        data = {}
+
+        if name:
+            data['name'] = name
+        if payload_url:
+            data['payload_url'] = payload_url
+        if events:
+            data['events[]'] = events
+        if not data:
+            return False
+
+        if secret:
+            data['secret'] = self.secret
+
+        response = self.oauth.put(self.base_uri + 'webhooks/' + webhook_id, data)
+
+        if response.status_code == 201:
+            return True
+
+        return response.json()
+
+
+    def deleteWebhook(self, webhook_id):
+        """
+        Deletes a webhook
+        Returns True if success or JSON if error
+
+        self.deleteWebhook(id)
+        """
+        response = self.oauth.delete(self.base_uri + 'webhooks/' + webhook_id)
+
+        if response.status_code == 201:
+            return True
+ 
+        return response.json()
+
+#5: Other funcs
 
     def getResources(self, limit=0, offset=0, archived=False):
         """
@@ -332,16 +408,16 @@ class ResourceGuruScripts(object):
         response = self.oauth.get(self.base_uri + endpoint, params=params)
 
         if response.status_code == 404:
-            return False
+            return response['errors']
 
         if client_id:
-            for r in response.json():
-                if r["name"] == name and r["client_id"] == client_id:
-                    return r['id']
+            for field in response.json():
+                if field["name"] == name and field["client_id"] == client_id:
+                    return field['id']
         else:
-            for r in response.json():
-                if r["name"] == name:
-                    return r['id']
+            for field in response.json():
+                if field["name"] == name:
+                    return field['id']
 
     def getNameById(self, endpoint, item_id):
         """
@@ -374,9 +450,11 @@ class ResourceGuruScripts(object):
         data = {item['id']:item for item in content}
         return data
 
-#5: Plumbing funcs
+#6:  Session Handling
 
     def _start_session(self, client_id, client_secret, redirect_uri, username, password):
+        self.secret = client_secret
+
         data = {'username'              : username,
                 'client_secret'         : client_secret,
                 'password'              : password,
