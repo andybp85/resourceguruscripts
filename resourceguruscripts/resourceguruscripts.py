@@ -382,7 +382,7 @@ class ResourceGuruScripts(object):
 
         if response.status_code == 201:
             return True
- 
+
         return response.json()
 
 #5: Other funcs
