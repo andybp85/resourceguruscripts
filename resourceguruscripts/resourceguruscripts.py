@@ -201,7 +201,7 @@ class ResourceGuruScripts(object):
         data = {}
 
         if name:
-            data["name"] = currentframe
+            data["name"] = name
         if archived:
             data["archived"] = archived
         if notes:
