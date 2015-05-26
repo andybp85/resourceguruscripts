@@ -5,10 +5,12 @@ This module wraps the ResourceGuru Api using OAuth2 BackendApplicationClient and
 
 Includes functionality to create, read, update, and delete bookings, clients, and projects 
 
+##Import
+    from resourceguruscripts import ResourceGuruScripts
+
 ##Init:
 
     ResourceGuruScripts( account, client_id, client_secret, username, password )
-
 
 ##Methods:
 
@@ -47,5 +49,6 @@ Includes functionality to create, read, update, and delete bookings, clients, an
 ###6: Session Handling
     _start_session(client_id, client_secret, redirect_uri, username, password)
     _token_updater(token)
+
 
 

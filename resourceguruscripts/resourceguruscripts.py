@@ -2,6 +2,10 @@
 
 This module wraps the ResourceGuru Api using OAuth2 BackendApplicationClient and Basic Auth to allow automated scripts access.
 
+Import:
+
+    from resourceguruscripts import ResourceGuruScripts
+
 Init:
 
     ResourceGuruScripts( account, client_id, client_secret, username, password )
