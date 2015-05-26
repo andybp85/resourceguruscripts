@@ -9,7 +9,8 @@ Includes functionality to create, read, update, and delete bookings, clients, an
 
     ResourceGuruScripts( account, client_id, client_secret, username, password )
 
-#Methods:
+
+##Methods:
 
 ###1: Clients
     getClients(limit=0, offset=0, archived=False)
