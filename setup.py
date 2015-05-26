@@ -10,7 +10,7 @@ config = {
     'description'  : 'ResourceGuru Python for Scripts',
     'author'       : 'Andrew Stanish for YouShallThrive, Inc. based on original by Owen Barton',
     'author_email' : 'andy@youshallthrive.com',
-    'url'          : 'https://github.com/andybp85/resourceguruscrips',
+    'url'          : 'https://github.com/andybp85/resourceguruscripts',
     'download_url' : 'https://github.com/andybp85/resourceguruscripts/tarball/0.1',
     'keywords'     : ['resourceguru'],
     'classifiers'  : [],
