@@ -280,7 +280,7 @@ class ResourceGuruScripts(object):
 
         return response.json()
 
-    def updateBooking(self, booking_id, resource=False, start_date=False, project=False, client=False, duration=1,):
+    def updateBooking(self, booking_id, resource=False, start_date=False, project=False, client=False, details=False, duration=1,):
         """
         Update a booking
         Returns json or False
@@ -299,6 +299,8 @@ class ResourceGuruScripts(object):
             data['project_id'] = self.setProject(project, client)
         if resource:
             data['resource_id'] = self.getOneByName('resources', resource)
+        if details:
+            data['details'] = details
         if not data:
             return False
 
