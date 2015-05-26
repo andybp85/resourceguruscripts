@@ -298,7 +298,7 @@ class ResourceGuruScripts(object):
         if not data:
             return False
 
-        response = self.oauth.put(self.base_uri + 'bookings/' +  str(booking_id), params=params)
+        response = self.oauth.put(self.base_uri + 'bookings/' +  str(booking_id), data=data)
 
         return response.json()
 
@@ -396,14 +396,17 @@ class ResourceGuruScripts(object):
 
     def getOneByName(self, endpoint, name, client_id=False, limit=0, offset=0, archived=False):
         """
-        Get one of something by name (and client if applicable).
+        Get one of something by name (and client if applicable). Doesn't work for bookings - no name!
         Returns an ID or False
 
-        self.get_one( name, projects|clients|bookings|resources|etc...,[client id], [limit], [offset], [archived])
+        self.get_one( name, projects|clients|resources|etc...,[client id], [limit], [offset], [archived])
         """
         params = {'limit'    : limit,
                   'offset'   : offset,
                   'archived' : archived}
+
+        if endpoint == 'bookings':
+            return False
 
         response = self.oauth.get(self.base_uri + endpoint, params=params)
 
