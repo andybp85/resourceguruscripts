@@ -8,7 +8,7 @@ Import:
 
 Init:
 
-    ResourceGuruScripts( account, client_id, client_secret, username, password )
+    ResourceGuruScripts( account, client_id, username, password, client_secret )
 
 Methods:
 
@@ -45,7 +45,6 @@ Methods:
     simple_list(endpoint, limit=0, offset=0, archived=False):
 
 #6: Session Handling
-    _start_session(client_id, client_secret, redirect_uri, username, password)
     _token_updater(token)
 
 """
@@ -66,6 +65,14 @@ class ResourceGuruScripts(object):
         """
         self.base_uri = self.API_URI + '/' + account + '/'
 
+        oauth_creds = {'client_id'     : client_id,
+                       'client_secret' : client_secret}
+
+        headers = { 'Accept'        : 'application/json',
+                    'Content-Type'  : 'application/x-www-form-urlencoded;charset=UTF-8',
+                    'client_id'     : client_id,
+                    'client_secret' : client_secret}
+
         try:
             token = pickle.load(open('token.p', "rb"))
             token['expires_in'] = token['expires_in'] - (int(time.time()) - int(os.path.getmtime('token.p')))
@@ -73,15 +80,20 @@ class ResourceGuruScripts(object):
         except:
             self.token = {}
 
+
         self.oauth = OAuth2Session(client_id           = client_id,
-                                   auto_refresh_url    = self.TOKEN_URI,
-                                   auto_refresh_kwargs = ['client_id', 'client_secret'],
-                                   token_updater       = self._token_updater(self.token),
-                                   token               = self.token)
+                                   client              = BackendApplicationClient(client_id),
+                                   token               = self.token,
+                                   auto_refresh_kwargs = oauth_creds,
+                                   token_updater       = self._token_updater)
 
-        self._token_updater(self.oauth.token)
-        self._start_session(client_id, client_secret, redirect_uri, username, password)
+        if not self.oauth.authorized:
+            self._token_updater(self.oauth.fetch_token(self.TOKEN_URI,
+                                                       username = username,
+                                                       password = password,
+                                                       body     = urlencode(oauth_creds)))
 
+        #import pdb; pdb.set_trace()
 
 #1: clients funcs
 
@@ -417,7 +429,7 @@ class ResourceGuruScripts(object):
         response = self.oauth.get(self.base_uri + endpoint, params=params)
 
         if response.status_code == 404:
-            return response['errors']
+            return None
 
         if client_id:
             for field in response.json():
@@ -453,7 +465,10 @@ class ResourceGuruScripts(object):
              suffix = ''
 
         response = self.oauth.get(self.base_uri + endpoint + suffix, params=params)
-        content = response.json()
+        try:
+            content = response.json()
+        except:
+            return None
 
         # Create a dictionary indexed by item ID instead of a flat list.
         data = {item['id']:item for item in content}
@@ -461,17 +476,12 @@ class ResourceGuruScripts(object):
 
 #6:  Session Handling
 
-    def _start_session(self, client_id, client_secret, redirect_uri, username, password):
-        self.secret = client_secret
+#    def _start_session(self, data, redirect_uri):
 
-        data = {'username'              : username,
-                'client_secret'         : client_secret,
-                'password'              : password,
-                'grant_type'            : 'password',
-                'client_id'             : client_id }
+        ##import pdb; pdb.set_trace()
 
-        response = self.oauth.post(self.TOKEN_URI, data)
-        self._token_updater(response.json())
+        #response = self.oauth.post(self.TOKEN_URI, data)
+        #self._token_updater(response.json())
 
     def _token_updater(self, token):
         pickle.dump(token, open('token.p', "wb"))
