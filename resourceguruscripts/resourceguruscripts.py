@@ -49,9 +49,20 @@ Methods:
 
 """
 from requests_oauthlib import OAuth2Session
-from oauthlib.oauth2 import BackendApplicationClient
+from oauthlib.oauth2 import Client
+from oauthlib.oauth2.rfc6749.parameters import prepare_token_request
 from urllib import urlencode
 import pickle, sys, os.path, time
+
+class PasswordApplicationClient(Client):
+
+    def prepare_request_body(self, body='', scope=None, **kwargs):
+
+        return prepare_token_request('password',
+                                     body  = body,
+                                     scope = scope,
+                                     **kwargs)
+
 
 class ResourceGuruScripts(object):
     RESOURCEGURU = 'https://api.resourceguruapp.com/'
@@ -68,32 +79,28 @@ class ResourceGuruScripts(object):
         oauth_creds = {'client_id'     : client_id,
                        'client_secret' : client_secret}
 
-        headers = { 'Accept'        : 'application/json',
-                    'Content-Type'  : 'application/x-www-form-urlencoded;charset=UTF-8',
-                    'client_id'     : client_id,
-                    'client_secret' : client_secret}
-
         try:
-            token = pickle.load(open('token.p', "rb"))
-            token['expires_in'] = token['expires_in'] - (int(time.time()) - int(os.path.getmtime('token.p')))
+            token = pickle.load(open(__file__ + 'token.p', "rb"))
+            token['expires_in'] = token['expires_in'] - (int(time.time()) - int(os.path.getmtime(__file__ + 'token.p')))
             self._token_updater(token)
         except:
             self.token = {}
 
 
         self.oauth = OAuth2Session(client_id           = client_id,
-                                   client              = BackendApplicationClient(client_id),
+                                   client              = PasswordApplicationClient(client_id),
                                    token               = self.token,
                                    auto_refresh_kwargs = oauth_creds,
                                    token_updater       = self._token_updater)
 
         if not self.oauth.authorized:
+            #import pdb; pdb.set_trace()
             self._token_updater(self.oauth.fetch_token(self.TOKEN_URI,
                                                        username = username,
                                                        password = password,
                                                        body     = urlencode(oauth_creds)))
-
-        #import pdb; pdb.set_trace()
+        if not self.oauth.authorized:
+            sys.exit("Unable to authorize.")
 
 #1: clients funcs
 
@@ -484,6 +491,6 @@ class ResourceGuruScripts(object):
         #self._token_updater(response.json())
 
     def _token_updater(self, token):
-        pickle.dump(token, open('token.p', "wb"))
+        pickle.dump(token, open(__file__ + 'token.p', "wb"))
         self.token = token
 
