@@ -94,7 +94,6 @@ class ResourceGuruScripts(object):
                                    token_updater       = self._token_updater)
 
         if not self.oauth.authorized:
-            #import pdb; pdb.set_trace()
             self._token_updater(self.oauth.fetch_token(self.TOKEN_URI,
                                                        username = username,
                                                        password = password,
@@ -218,8 +217,6 @@ class ResourceGuruScripts(object):
         """
         Update a project
         Returns full json project representation of False
-
-        self.updateProject( project_id, [name], [archived], [notes], [client_id] )
         """
         data = {}
 
@@ -251,7 +248,8 @@ class ResourceGuruScripts(object):
 
 #3: bookings funcs
 
-    def getBookings(self, start_date=False, end_date=False, project=False, client=False, resource=False, limit=0, offset=0, booker_id=False):
+    def getBookings(self, start_date=False, end_date=False, project=False, client=False,
+                        resource=False, limit=0, offset=0, booker_id=False):
         """
         Get bookings by dates, project, client, or resource
         Returns json or False
@@ -264,11 +262,14 @@ class ResourceGuruScripts(object):
             response = self.oauth.get(self.base_uri + 'bookings', params=params)
 
         if project:
-            response = self.oauth.get(self.base_uri + 'projects/' + str(self.getOneByName('projects', project)) + '/bookings')
+            response = self.oauth.get(self.base_uri + 'projects/' + \
+                    str(self.getOneByName('projects', project)) + '/bookings')
         if client:
-            response = self.oauth.get(self.base_uri + 'clients/' + str(self.getOneByName('clients', client)) + '/bookings')
+            response = self.oauth.get(self.base_uri + 'clients/' + \
+                    str(self.getOneByName('clients', client)) + '/bookings')
         if resource:
-            response = self.oauth.get(self.base_uri + 'resources/' + str(self.getOneByName('resources', resource)) + '/bookings')
+            response = self.oauth.get(self.base_uri + 'resources/' + \
+                    str(self.getOneByName('resources', resource)) + '/bookings')
 
         if response and response.status_code == 200:
             return response.json()
@@ -276,7 +277,8 @@ class ResourceGuruScripts(object):
         return False
 
 
-    def addBooking(self, start_date, resource, project, project_notes, client, client_notes, details=False, duration=1):
+    def addBooking(self, start_date, resource, project, project_notes, client,
+                        client_notes, details=False, duration=1):
         """
         Adds a booking
         Returns json or False
@@ -299,12 +301,11 @@ class ResourceGuruScripts(object):
 
         return response.json()
 
-    def updateBooking(self, booking_id, resource=False, start_date=False, project=False, client=False, details=False, duration=1,):
+    def updateBooking(self, booking_id, resource=False, start_date=False, project=False,
+                        client=False, details=False, duration=False,):
         """
         Update a booking
         Returns json or False
-
-        self.updateBooking( booking_id, [resource_name], [start_date], [project_name], [client_name], [duration] )
         """
         data =  {}
 
@@ -353,8 +354,6 @@ class ResourceGuruScripts(object):
         """
         Sets a webhook. Can pass secret stored in session.
         Returns JSON
-
-        self.setWebhook(name, payload_url, events(Array), [secret(Bool)] )
         """
         data = {'name'        : name,
                 'payload_url' : payload_url,
@@ -371,8 +370,6 @@ class ResourceGuruScripts(object):
         """
         Update a webhook. Can pass secret stored in session.
         Returns True if success, False if no parameters or JSON if error
-
-        self.updateWebhook(webhook_id, [name], [payload_url], [events(Array)], [secret(Bool)] )
         """
         data = {}
 
@@ -400,8 +397,6 @@ class ResourceGuruScripts(object):
         """
         Deletes a webhook
         Returns True if success or JSON if error
-
-        self.deleteWebhook(id)
         """
         response = self.oauth.delete(self.base_uri + 'webhooks/' + webhook_id)
 
@@ -423,8 +418,6 @@ class ResourceGuruScripts(object):
         """
         Get one of something by name (and client if applicable). Doesn't work for bookings - no name!
         Returns an ID or False
-
-        self.get_one( name, projects|clients|resources|etc...,[client id], [limit], [offset], [archived])
         """
         params = {'limit'    : limit,
                   'offset'   : offset,
@@ -482,13 +475,6 @@ class ResourceGuruScripts(object):
         return data
 
 #6:  Session Handling
-
-#    def _start_session(self, data, redirect_uri):
-
-        ##import pdb; pdb.set_trace()
-
-        #response = self.oauth.post(self.TOKEN_URI, data)
-        #self._token_updater(response.json())
 
     def _token_updater(self, token):
         pickle.dump(token, open(__file__ + 'token.p', "wb"))
