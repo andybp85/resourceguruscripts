@@ -1,7 +1,7 @@
 ResourceGuruScripts
 ============
 
-This module wraps the ResourceGuru Api using OAuth2 BackendApplicationClient and Basic Auth to allow automated scripts access.
+This module wraps the ResourceGuru Api using `requests_oauthlib` and `grant_type: password` to allow automated scripts access.
 
 Includes functionality to create, read, update, and delete bookings, clients, and projects 
 
@@ -16,5 +16,6 @@ Includes functionality to create, read, update, and delete bookings, clients, an
 ##Init:
 
     ResourceGuruScripts( account, client_id, client_secret, username, password )
+
 
 
