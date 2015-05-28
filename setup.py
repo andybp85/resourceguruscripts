@@ -6,7 +6,7 @@ except ImportError:
 config = {
     'name'         : 'resourceguruscripts',
     'packages'     : ['resourceguruscripts'],
-    'version'      : '0.7',
+    'version'      : '0.8',
     'description'  : 'ResourceGuru Python for Scripts',
     'author'       : 'Andrew Stanish for YouShallThrive, Inc. based on original by Owen Barton',
     'author_email' : 'andy@youshallthrive.com',
