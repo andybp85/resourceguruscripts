@@ -8,44 +8,7 @@ Import:
 
 Init:
 
-    ResourceGuruScripts( account, client_id, username, password, client_secret )
-
-Methods:
-
-#1: Clients
-    getClients(limit=0, offset=0, archived=False)
-    setClient(name)
-    addClient(name, notes=False):
-    updateClient(client_id, name=False, notes=False)
-    deleteClient(client_id)
-
-#2: Projects
-    getProjects(limit=0, offset=0, archived=False)
-    setProject(name, project_notes, client)
-    addProject(name, notes=False, client=False, client_id=False)
-    updateProject(proj_id, name=False, archived=False, notes=False, client_id=False)
-    deleteProject(proj_id)
-
-#3: Bookings
-    getBookings(start_date=False, end_date=False, project=False, client=False, resource=False, limit=0, offset=0, booker_id=False)
-    addBooking(start_date, resource, project, project_notes, client, client_notes, details=False, duration=1)
-    updateBooking(booking_id, resource=False, start_date=False, project=False, client=False, duration=1,)
-    deleteBooking(booking_id)
-
-#4: webhooks
-    getWebhooks()
-    setWebhook(name, payload_url, events, secret=False)
-    updateWebhook(webhook_id, name=False, payload_url=False, events=False, secret=False):
-    deleteWebhook(self, webhook_id)
-
-#5: Other
-    getResources(limit=0, offset=0, archived=False)
-    getOneByName(endpoint, name, client_id=False, limit=0, offset=0, archived=False)
-    getNameById(endpoint, item_id)
-    simple_list(endpoint, limit=0, offset=0, archived=False):
-
-#6: Session Handling
-    _token_updater(token)
+    ResourceGuruScripts( account, client_id, username, password, client_secret, username, password, [redirect_uri] )
 
 """
 from requests_oauthlib import OAuth2Session
@@ -55,7 +18,9 @@ from urllib import urlencode
 import pickle, sys, os.path, time
 
 class PasswordApplicationClient(Client):
-
+    """
+    Client to handle grant_type password
+    """
     def prepare_request_body(self, body='', scope=None, **kwargs):
 
         return prepare_token_request('password',
@@ -100,6 +65,7 @@ class ResourceGuruScripts(object):
                                                        body     = urlencode(oauth_creds)))
         if not self.oauth.authorized:
             sys.exit("Unable to authorize.")
+
 
 #1: clients funcs
 
@@ -340,6 +306,7 @@ class ResourceGuruScripts(object):
         else:
             return False
 
+
 #4: webhooks
 
     def getWebhooks(self):
@@ -404,6 +371,7 @@ class ResourceGuruScripts(object):
             return True
 
         return response.json()
+
 
 #5: Other funcs
 
@@ -473,6 +441,7 @@ class ResourceGuruScripts(object):
         # Create a dictionary indexed by item ID instead of a flat list.
         data = {item['id']:item for item in content}
         return data
+
 
 #6:  Session Handling
 
