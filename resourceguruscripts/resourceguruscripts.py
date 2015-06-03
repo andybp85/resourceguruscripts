@@ -214,6 +214,21 @@ class ResourceGuruScripts(object):
 
 #3: bookings funcs
 
+    def getBooking(self, booking_id):
+        """
+        Get a booking by ID
+        Returns json or false
+        """
+        params = {'limit' : limit, 'offset' : offset}
+
+        response = self.oauth.get(self.base_uri + 'bookings', params=params)
+
+        if response and response.status_code == 200:
+            return response.json()
+
+        return False
+
+
     def getBookings(self, start_date=False, end_date=False, project=False, client=False,
                         resource=False, limit=0, offset=0, booker_id=False):
         """
