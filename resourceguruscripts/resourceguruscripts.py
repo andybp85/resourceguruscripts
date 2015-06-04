@@ -214,7 +214,7 @@ class ResourceGuruScripts(object):
 
 #3: bookings funcs
 
-    def getBooking(self, booking_id):
+    def getBooking(self, booking_id, limit=False, offset=False):
         """
         Get a booking by ID
         Returns json or false
