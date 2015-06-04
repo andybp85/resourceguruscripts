@@ -221,7 +221,7 @@ class ResourceGuruScripts(object):
         """
         params = {'limit' : limit, 'offset' : offset}
 
-        response = self.oauth.get(self.base_uri + 'bookings', params=params)
+        response = self.oauth.get(self.base_uri + 'bookings/' + booking_id, params=params)
 
         if response and response.status_code == 200:
             return response.json()
