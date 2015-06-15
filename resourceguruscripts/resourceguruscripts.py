@@ -45,16 +45,16 @@ class ResourceGuruScripts(object):
                        'client_secret' : client_secret}
 
         try:
-            token = pickle.load(open(__file__ + 'token.p', "rb"))
-            token['expires_in'] = token['expires_in'] - (int(time.time()) - int(os.path.getmtime(__file__ + 'token.p')))
+            token = pickle.load(open('token.p', "rb"))
+            token['expires_in'] = token['expires_in'] - (int(time.time()) - int(os.path.getmtime('token.p')))
             self._token_updater(token)
         except:
             self.token = {}
 
-
         self.oauth = OAuth2Session(client_id           = client_id,
                                    client              = PasswordApplicationClient(client_id),
                                    token               = self.token,
+                                   auto_refresh_url    = self.TOKEN_URI
                                    auto_refresh_kwargs = oauth_creds,
                                    token_updater       = self._token_updater)
 
@@ -428,7 +428,7 @@ class ResourceGuruScripts(object):
         Get client or project name by ID
         Return name or False
         """
-        response = self.oauth.get(base_uri + endpoint + '/' + item_id).json()
+        response = self.oauth.get(self.base_uri + endpoint + '/' + str(item_id)).json()
 
         try:
             return response["name"]
@@ -461,6 +461,6 @@ class ResourceGuruScripts(object):
 #6:  Session Handling
 
     def _token_updater(self, token):
-        pickle.dump(token, open(__file__ + 'token.p', "wb"))
+        pickle.dump(token, open('token.p', "wb"))
         self.token = token
 
