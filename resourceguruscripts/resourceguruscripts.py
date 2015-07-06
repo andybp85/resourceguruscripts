@@ -8,7 +8,7 @@ Import:
 
 Init:
 
-    ResourceGuruScripts( account, client_id, username, password, client_secret, username, password, [redirect_uri] )
+    ResourceGuruScripts( account, client_id, client_secret, username, password, [redirect_uri] )
 
 """
 from requests_oauthlib import OAuth2Session
@@ -54,7 +54,7 @@ class ResourceGuruScripts(object):
         self.oauth = OAuth2Session(client_id           = client_id,
                                    client              = PasswordApplicationClient(client_id),
                                    token               = self.token,
-                                   auto_refresh_url    = self.TOKEN_URI
+                                   auto_refresh_url    = self.TOKEN_URI,
                                    auto_refresh_kwargs = oauth_creds,
                                    token_updater       = self._token_updater)
 
