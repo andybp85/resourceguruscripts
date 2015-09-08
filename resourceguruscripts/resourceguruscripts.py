@@ -1,4 +1,6 @@
-"""ResourceGuru API Python wrapper wrapper for back-end scripts
+# -*- coding: utf-8 -*-
+"""
+ResourceGuru API Python wrapper wrapper for back-end scripts
 
 This module wraps the ResourceGuru Api using OAuth2 BackendApplicationClient and Basic Auth to allow automated scripts access.
 
@@ -8,7 +10,7 @@ Import:
 
 Init:
 
-    ResourceGuruScripts( account, client_id, username, password, client_secret, username, password, [redirect_uri] )
+    ResourceGuruScripts( account, client_id, client_secret, username, password, [redirect_uri] )
 
 """
 from requests_oauthlib import OAuth2Session
@@ -54,7 +56,7 @@ class ResourceGuruScripts(object):
         self.oauth = OAuth2Session(client_id           = client_id,
                                    client              = PasswordApplicationClient(client_id),
                                    token               = self.token,
-                                   auto_refresh_url    = self.TOKEN_URI
+                                   auto_refresh_url    = self.TOKEN_URI,
                                    auto_refresh_kwargs = oauth_creds,
                                    token_updater       = self._token_updater)
 
@@ -390,12 +392,58 @@ class ResourceGuruScripts(object):
 
 #5: Other funcs
 
+    def addResources(self, resource):
+        """
+        Add resource
+        Returns ID
+        """
+        data = resource
+        
+        response = self.oauth.post(self.base_uri + 'resources/', data=data)
+
+        if response.status_code == 404:
+            return False
+        else:
+            resData = response.json()
+            return resData
+
+    def updateResource(self, resource_id, update_parameters):
+        destUrl = self.base_uri + 'resources/' + str(resource_id)
+        print destUrl
+        response = self.oauth.put(self.base_uri + 'resources/' + str(resource_id), data=update_parameters)
+
+        if response.status_code == 404:
+            return False
+        else:
+            resData = response.json()
+            return resData
+
+    def getResource(self, resource_id):
+        '''
+        Get one resource by id
+        '''
+        destUrl = self.base_uri + 'resources/' + str(resource_id)
+        response = self.oauth.get(self.base_uri + 'resources/' + str(resource_id))
+
+        if response.status_code == 404:
+            return False
+        else:
+            resData = response.json()
+            return resData
+
     def getResources(self, limit=0, offset=0, archived=False):
         """
-        Get all reouces
+        Get all resources
         Returns json
         """
         return self.simple_list('resources', limit=limit, offset=offset, archived=archived)
+
+    def getResourceTypes(self, limit=0, offset=0, archived=False):
+        """
+        Get all resource types
+        Returns json
+        """
+        return self.simple_list('resource_types', limit=limit, offset=offset, archived=archived)
 
     def getOneByName(self, endpoint, name, client_id=False, limit=0, offset=0, archived=False):
         """
